@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NBAPredictor.Core.Interfaces;
@@ -23,7 +24,7 @@ namespace NBAPredictor.Infrastructure.Provider
         }
 
 
-        public (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(User user)
+        public (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(User user, IList<string> roles)
         {
             var signingKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_jwtOptions.Secret));
@@ -32,13 +33,13 @@ namespace NBAPredictor.Infrastructure.Provider
                 signingKey,
                 SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.ToString())
-            };
+            }.Concat(roles.Select(r=> new Claim(ClaimTypes.Role,r)));
 
             var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationTimeInMin);
 
@@ -87,6 +88,14 @@ namespace NBAPredictor.Infrastructure.Provider
                 Secure = true,
                 SameSite = SameSiteMode.Strict
             });
+        }
+
+        public ClaimsPrincipal? GetClaimsPrincipal()
+        {
+            var principal = _httpContextAccessor.HttpContext?.User;
+            if (principal == null)
+                return null;
+            return principal;
         }
     }
 }

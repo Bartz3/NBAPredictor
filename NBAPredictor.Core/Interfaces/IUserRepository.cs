@@ -12,3 +12,4 @@ namespace NBAPredictor.Core.Interfaces
          Task<User?> GetUserByRefreshTokenAsync(string refreshToken);
     }
 }
+

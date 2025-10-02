@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
-using NBAPredictor.Domain.Exceptions;
+using NBAPredictor.Domain.Exceptions.Account;
 using System.Net;
 
 namespace NBAPredictor.Handlers

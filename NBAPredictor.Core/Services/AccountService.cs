@@ -1,8 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.VisualBasic;
 using NBAPredictor.Core.Interfaces;
+using NBAPredictor.Domain.Constants;
 using NBAPredictor.Domain.Entities;
+using NBAPredictor.Domain.Enums;
 using NBAPredictor.Domain.Exceptions;
-using NBAPredictor.Domain.Requests;
+using NBAPredictor.Domain.Exceptions.Account;
+using NBAPredictor.Domain.Requests.Account;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +47,8 @@ namespace NBAPredictor.Core.Services
 
             if(!result.Succeeded)
                 throw new RegistrationFailedException(result.Errors.Select(x => x.Description));
+
+            await _userManager.AddToRoleAsync(user, GetIdentityRoleName(registerRequest.Role));
         }
 
         public async Task LoginAsync(LoginRequest loginRequest) {
@@ -51,13 +57,29 @@ namespace NBAPredictor.Core.Services
             if(user == null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
                 throw new LoginFailedException(loginRequest.Email);
 
-            await AssignTokensToUser(user);
+            IList<string> roles = await _userManager.GetRolesAsync(user);
+            await AssignTokensToUser(user, roles);
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordRequest resetRequest)
+        {
+            var claims = _authTokenProvider.GetClaimsPrincipal();
+            var email = claims.FindFirst(ClaimTypes.Email)?.Value;
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+                throw new NoUserFoundException(email);
+
+            var result = await _userManager.ChangePasswordAsync(user, resetRequest.OldPassword, resetRequest.NewPassword);
+
+            if (!result.Succeeded)
+                throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
         }
 
         public async Task RefreshTokenAsync(string? refreshToken)
         {
             if (string.IsNullOrEmpty(refreshToken))
-                throw new RefreshTokenException("Refresh token is missing");
+                throw new RefreshTokenException("Refresh token is missing.");
 
             var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
 
@@ -70,7 +92,9 @@ namespace NBAPredictor.Core.Services
             {
                 throw new RefreshTokenException("Refresh token is expired.");
             }
-            await AssignTokensToUser(user);
+
+            IList<string> roles = await _userManager.GetRolesAsync(user);
+            await AssignTokensToUser(user, roles);
         }
 
         public async Task LogoutAsync(Guid userId)
@@ -135,12 +159,13 @@ namespace NBAPredictor.Core.Services
                     loginResult.Errors.Select(x => x.Description))}");
             }
 
-            await AssignTokensToUser(user);
+            IList<string> roles = await _userManager.GetRolesAsync(user);
+            await AssignTokensToUser(user, roles);
         }
 
-        private async Task AssignTokensToUser(User? user)
+        private async Task AssignTokensToUser(User? user, IList<string>? roles = null)
         {
-            var (jwtToken, expirationDateInUtc) = _authTokenProvider.GenerateJwtToken(user);
+            var (jwtToken, expirationDateInUtc) = _authTokenProvider.GenerateJwtToken(user, roles);
             var refreshTokenValue = _authTokenProvider.GenerateRefreshToken();
 
             var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(14);
@@ -152,6 +177,16 @@ namespace NBAPredictor.Core.Services
 
             _authTokenProvider.WriteAuthTokenAsHttpOnly("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
             _authTokenProvider.WriteAuthTokenAsHttpOnly("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+        }
+
+        private string GetIdentityRoleName(Role role)
+        {
+            return role switch
+            {
+                Role.User => IdentityRoleConstants.User,
+                Role.Admin => IdentityRoleConstants.Admin,
+                _ => throw new ArgumentOutOfRangeException(nameof(role), role, "Provided role is not supported.")
+            };
         }
     }
 }

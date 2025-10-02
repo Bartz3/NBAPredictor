@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NBAPredictor.Core.Interfaces;
 using NBAPredictor.Domain.Entities;
-using NBAPredictor.Domain.Requests;
+using NBAPredictor.Domain.Requests.Account;
 using System.Security.Claims;
 
 namespace NBAPredictor.Extentions
@@ -24,6 +24,13 @@ namespace NBAPredictor.Extentions
             routes.MapPost("/api/account/register", async (RegisterRequest registerRequest, IAccountService accountService) =>
             {
                 await accountService.RegisterAsync(registerRequest);
+
+                return Results.Ok();
+            });
+
+            routes.MapPost("/api/account/reset-password", async (ResetPasswordRequest resetRequest, IAccountService accountService) =>
+            {
+                await accountService.ResetPasswordAsync(resetRequest);
 
                 return Results.Ok();
             });

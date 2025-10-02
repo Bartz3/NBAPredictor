@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NBAPredictor.Domain.Requests
+namespace NBAPredictor.Domain.Requests.Account
 {
     public class LoginRequest
     {

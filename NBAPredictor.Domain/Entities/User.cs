@@ -21,5 +21,8 @@ namespace NBAPredictor.Domain.Entities
             };
             
         }
+
+        public ICollection<UserBet> Bets { get; set; } = new List<UserBet>();
+        public ICollection<UserScore> Scores { get; set; } = new List<UserScore>();
     }
 }
