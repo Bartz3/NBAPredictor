@@ -24,5 +24,33 @@ namespace NBAPredictor.Infrastructure.Repositories
 
             return user;
         }
+
+        public async Task<User?> GetByIdAsync(Guid id)
+        {
+            return await _nbaPredictionDbContext.Users.FindAsync(id);
+        }
+
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await _nbaPredictionDbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public Task UpdateAsync(User user)
+        {
+            _nbaPredictionDbContext.Users.Update(user);
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteAsync(User user)
+        {
+            _nbaPredictionDbContext.Users.Remove(user);
+            return Task.CompletedTask;
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _nbaPredictionDbContext.SaveChangesAsync();
+        }
+
     }
 }

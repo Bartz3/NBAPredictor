@@ -10,6 +10,13 @@ namespace NBAPredictor.Core.Interfaces
     public interface IUserRepository
     {
          Task<User?> GetUserByRefreshTokenAsync(string refreshToken);
+
+         Task<User?> GetByIdAsync(Guid id);
+         Task<User?> GetByEmailAsync(string email);
+         Task UpdateAsync(User user);
+         Task DeleteAsync(User user);
+         
+         Task SaveChangesAsync();
     }
 }
 

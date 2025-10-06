@@ -10,4 +10,13 @@
     <ProjectReference Include="..\NBAPredictor.Domain\NBAPredictor.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Queries\SeasonResults\" />
+    <Folder Include="Queries\Bets\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="13.0.0" />
+  </ItemGroup>
+
 </Project>

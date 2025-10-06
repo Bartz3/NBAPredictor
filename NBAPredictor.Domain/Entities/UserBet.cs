@@ -11,7 +11,7 @@ namespace NBAPredictor.Domain.Entities
     {
         public int Id { get; set; }
 
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         public User User { get; set; }
 
         public int SeasonId { get; set; }
