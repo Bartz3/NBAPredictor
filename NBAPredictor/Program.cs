@@ -44,20 +44,17 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(opt =>
 {
     opt.Password.RequireDigit = false;
     opt.Password.RequireLowercase = true;
-    opt.Password.RequireNonAlphanumeric = true;
+    opt.Password.RequireNonAlphanumeric = false;
     opt.Password.RequireUppercase = true;
     opt.Password.RequiredLength = 8;
     opt.User.RequireUniqueEmail = true;
 }).AddEntityFrameworkStores<NBAPredictionDbContext>();
 
-//builder.Services.AddDbContext<NBAPredictionDbContext>(options =>
-//    options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionString")));
-
 builder.Services.AddDbContext<NBAPredictionDbContext>(o =>
 {
     o.UseNpgsql(
         builder.Configuration.GetConnectionString("DbConnectionString"),
-        b => b.MigrationsAssembly("NBAPredictor.API")
+        b => b.MigrationsAssembly("NBAPredictor.Infrastructure")
         );
 });
 
